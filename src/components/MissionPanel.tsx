@@ -6,7 +6,9 @@ import { formatMoney, formatMultiplier } from "@/src/utils/format";
 interface BetPanelProps {
   bet: Bet;
   onPlaceBet: (betId: BetId) => void;
+  onQueueBet: (betId: BetId) => void;
   onCancelBet: (betId: BetId) => void;
+  onCancelQueuedBet: (betId: BetId) => void;
   onCashOut: (betId: BetId) => void;
 }
 
@@ -17,6 +19,7 @@ const STATUS_LABELS: Record<Bet["status"], string> = {
   cashed_out: "CASHOUT!",
   lost: "PERDU",
   cancelled: "ANNULÉ",
+  queued: "PROGRAMMÉE",
   refunded: "REMBOURSÉ",
   rejected: "REFUSÉ",
 };
@@ -50,7 +53,9 @@ const Toggle = ({
 export const BetPanel = ({
   bet,
   onPlaceBet,
+  onQueueBet,
   onCancelBet,
+  onCancelQueuedBet,
   onCashOut,
 }: BetPanelProps) => {
   const updateBet = useGameStore((state) => state.updateBet);
@@ -66,12 +71,34 @@ export const BetPanel = ({
   const canBet = bettingOpen && bet.status === "waiting";
   const canCancel = bettingOpen && bet.status === "placed";
   const canCashOut = isFlying && bet.status === "placed";
-  const canEdit = canBet;
+  const queueableRound = [
+    "BETTING_CLOSED",
+    "RUNNING",
+    "CRASHED",
+    "SETTLING",
+    "COMPLETED",
+    "CANCELLED",
+  ].includes(roundStatus ?? "");
+  const queueableBetStatuses: Bet["status"][] = [
+    "waiting",
+    "cashed_out",
+    "lost",
+    "cancelled",
+    "refunded",
+    "rejected",
+  ];
+  const canQueue =
+    queueableRound && queueableBetStatuses.includes(bet.status);
+  const canCancelQueue =
+    bet.status === "queued" && Boolean(bet.queuedBetUuid);
+  const canEdit = canBet || canQueue;
   const statusLabel =
     bet.status === "waiting"
       ? canBet
         ? "PRÊT"
-        : "MISES FERMÉES"
+        : canQueue
+          ? "PROCHAINE MANCHE"
+          : "MISES FERMÉES"
       : STATUS_LABELS[bet.status];
   const minimum = Number(config.min_bet);
   const maximum = Number(config.max_bet);
@@ -86,32 +113,40 @@ export const BetPanel = ({
   const handlePrimaryAction = () => {
     if (canCashOut) onCashOut(bet.id);
     else if (canCancel) onCancelBet(bet.id);
+    else if (canCancelQueue) onCancelQueuedBet(bet.id);
+    else if (canQueue) onQueueBet(bet.id);
     else if (canBet) onPlaceBet(bet.id);
   };
 
   const buttonLabel = (() => {
+    if (bet.status === "pending") return "VALIDATION SERVEUR";
+    if (canCancelQueue) return "ANNULER LA MISE PROGRAMMÉE";
+    if (canCashOut) return "CASHOUT";
+    if (canCancel) return "ANNULER LE PARI";
+    if (canQueue) return "PLACER LE PARI";
+    if (canBet) return "PLACER LE PARI";
     if (bet.status === "cashed_out")
       return `GAGNÉ ${formatMoney(bet.winAmount ?? "0", currency)}`;
     if (bet.status === "lost") return "PERDU";
-    if (bet.status === "pending") return "VALIDATION SERVEUR";
     if (bet.status === "refunded") return "REMBOURSÉ";
     if (bet.status === "cancelled") return "ANNULÉ";
-    if (canCashOut) return "CASHOUT";
-    if (canCancel) return "ANNULER LE PARI";
-    if (canBet) return "PLACER LE PARI";
     return "MISES FERMÉES";
   })();
 
   const buttonSubtext = (() => {
+    if (bet.status === "pending")
+      return "Le backend vérifie le wallet et les limites";
+    if (canCancelQueue)
+      return "Le débit sera fait uniquement à l'ouverture";
+    if (canCashOut)
+      return `Multiplicateur serveur ${formatMultiplier(multiplier)}`;
+    if (canCancel) return "Remboursement traité par le wallet officiel";
+    if (canQueue)
+      return "Aucun débit avant l'ouverture de la prochaine manche";
     if (bet.status === "cashed_out")
       return `${formatMultiplier(bet.cashOutMultiplier ?? 1)} · ${bet.ticketRef ?? ""}`;
     if (bet.status === "lost")
       return "Le crash officiel est arrivé avant le cashout";
-    if (bet.status === "pending")
-      return "Le backend vérifie le wallet et les limites";
-    if (canCashOut)
-      return `Multiplicateur serveur ${formatMultiplier(multiplier)}`;
-    if (canCancel) return "Remboursement traité par le wallet officiel";
     if (!bettingOpen) return "En attente de l'ouverture des mises";
     return `${formatMoney(bet.betAmount, currency)} sur cette manche`;
   })();
@@ -276,16 +311,30 @@ export const BetPanel = ({
         <motion.button
           className={`mission-primary ${
             canCashOut ? "is-cashout" : ""
-          } ${canBet ? "is-place" : ""} ${
-            bet.status === "cancelled" ? "is-cancelled" : ""
-          } ${bet.status === "cashed_out" ? "is-win" : ""} ${
-            bet.status === "lost" ? "is-lost" : ""
-          } ${canCancel ? "is-cancel" : ""}`}
+          } ${canBet || canQueue ? "is-place" : ""} ${
+            bet.status === "cancelled" && !canQueue
+              ? "is-cancelled"
+              : ""
+          } ${
+            bet.status === "cashed_out" && !canQueue ? "is-win" : ""
+          } ${
+            bet.status === "lost" && !canQueue ? "is-lost" : ""
+          } ${canCancel || canCancelQueue ? "is-cancel" : ""}`}
           type="button"
           onClick={handlePrimaryAction}
-          disabled={!canBet && !canCashOut && !canCancel}
+          disabled={
+            !canBet &&
+            !canQueue &&
+            !canCashOut &&
+            !canCancel &&
+            !canCancelQueue
+          }
           whileTap={
-            !canBet && !canCashOut && !canCancel
+            !canBet &&
+            !canQueue &&
+            !canCashOut &&
+            !canCancel &&
+            !canCancelQueue
               ? undefined
               : { scale: 0.985 }
           }

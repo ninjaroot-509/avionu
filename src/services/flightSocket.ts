@@ -98,6 +98,21 @@ class FlightSocket {
     });
   }
 
+  queueBet(sourceRoundUuid: string, bet: Bet) {
+    const requestId = createRequestId();
+    useGameStore.getState().markBetPending(bet.id, requestId);
+    this.send({
+      action: "bet.queue",
+      request_id: requestId,
+      source_round_uuid: sourceRoundUuid,
+      slot: bet.id,
+      amount: Number(bet.betAmount).toFixed(2),
+      auto_cashout_multiplier: bet.autoCashOut
+        ? Number(bet.autoCashOutTarget).toFixed(2)
+        : null,
+    });
+  }
+
   cashout(betUuid: string) {
     this.send({
       action: "bet.cashout",
@@ -111,6 +126,14 @@ class FlightSocket {
       action: "bet.cancel",
       request_id: createRequestId(),
       bet_uuid: betUuid,
+    });
+  }
+
+  cancelQueued(queueUuid: string) {
+    this.send({
+      action: "bet.queue.cancel",
+      request_id: createRequestId(),
+      queue_uuid: queueUuid,
     });
   }
 
@@ -238,6 +261,8 @@ class FlightSocket {
     if (
       message.event === "bets.updated" ||
       message.event === "bots.updated" ||
+      message.event === "bet.queued" ||
+      message.event === "bet.queue_cancelled" ||
       message.event === "round.completed"
     ) {
       this.requestSnapshot();

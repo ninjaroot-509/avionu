@@ -93,6 +93,39 @@ export const useFlightGame = (enabled = true) => {
     flightSocket.cancel(bet.serverBetUuid);
   }, []);
 
+  const queueBetAction = useCallback((betId: BetId) => {
+    const state = useGameStore.getState();
+    const bet = state.bets.find((item) => item.id === betId);
+    if (!bet || bet.status === "pending" || bet.status === "queued")
+      return;
+    if (!state.authenticated) {
+      state.pushNotification({
+        tone: "warning",
+        title: "Authentification requise",
+        message: "Reconnectez-vous à votre compte VinParye.",
+      });
+      return;
+    }
+    if (!state.roundId) {
+      state.pushNotification({
+        tone: "warning",
+        title: "Synchronisation",
+        message: "La manche officielle doit être resynchronisée.",
+      });
+      flightSocket.requestSnapshot();
+      return;
+    }
+    flightSocket.queueBet(state.roundId, bet);
+  }, []);
+
+  const cancelQueuedBetAction = useCallback((betId: BetId) => {
+    const bet = useGameStore
+      .getState()
+      .bets.find((item) => item.id === betId);
+    if (!bet?.queuedBetUuid || bet.status !== "queued") return;
+    flightSocket.cancelQueued(bet.queuedBetUuid);
+  }, []);
+
   const cashOutBetAction = useCallback((betId: BetId) => {
     const bet = useGameStore
       .getState()
@@ -103,7 +136,9 @@ export const useFlightGame = (enabled = true) => {
 
   return {
     placeBetAction,
+    queueBetAction,
     cancelBetAction,
+    cancelQueuedBetAction,
     cashOutBetAction,
     reconnect: () => flightSocket.reconnect(),
   };

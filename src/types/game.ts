@@ -18,6 +18,7 @@ export type BetStatus =
   | "cashed_out"
   | "lost"
   | "cancelled"
+  | "queued"
   | "refunded"
   | "rejected";
 
@@ -73,6 +74,18 @@ export interface ServerBet {
   placed_at: string;
 }
 
+export interface ServerQueuedBet {
+  queue_uuid: string;
+  client_request_id: string;
+  source_round_uuid: string;
+  slot: number;
+  amount: string;
+  currency: string;
+  auto_cashout_multiplier: string | null;
+  status: "QUEUED";
+  created_at: string;
+}
+
 export interface ServerRoundHistory {
   round_uuid: string;
   crash_multiplier: string;
@@ -102,6 +115,7 @@ export interface Bet {
   autoCashOutTarget: string;
   status: BetStatus;
   clientRequestId: string | null;
+  queuedBetUuid: string | null;
   serverBetUuid: string | null;
   ticketRef: string | null;
   placedAt: number | null;
@@ -122,6 +136,7 @@ export interface FlightPlayerSnapshot {
   balance: string;
   currency: string;
   active_bets: ServerBet[];
+  queued_bets: ServerQueuedBet[];
 }
 
 export interface FlightSnapshot {

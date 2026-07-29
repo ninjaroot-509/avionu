@@ -26,8 +26,14 @@ export const FlightArcadePage = () => {
   const toggleSound = useGameStore((state) => state.toggleSound);
   const assets = useAssetPreloader();
   const gameReady = assets.ready && gameEntered;
-  const { placeBetAction, cancelBetAction, cashOutBetAction, reconnect } =
-    useFlightGame(gameReady);
+  const {
+    placeBetAction,
+    queueBetAction,
+    cancelBetAction,
+    cancelQueuedBetAction,
+    cashOutBetAction,
+    reconnect,
+  } = useFlightGame(gameReady);
   const handleAutoplayStarted = useCallback(() => {
     setGameEntered(true);
   }, []);
@@ -84,7 +90,9 @@ export const FlightArcadePage = () => {
               <BetPanel
                 bet={bet}
                 onPlaceBet={placeBetAction}
+                onQueueBet={queueBetAction}
                 onCancelBet={cancelBetAction}
+                onCancelQueuedBet={cancelQueuedBetAction}
                 onCashOut={cashOutBetAction}
                 key={bet.id}
               />

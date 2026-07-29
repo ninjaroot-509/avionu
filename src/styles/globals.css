@@ -2626,6 +2626,16 @@ button:disabled {
   background: #69716c;
 }
 
+.mission-status.is-queued {
+  border-color: rgba(64, 196, 255, 0.3);
+  color: #9bddf7;
+}
+
+.mission-status.is-queued i {
+  background: #40c4ff;
+  box-shadow: 0 0 8px rgba(64, 196, 255, 0.55);
+}
+
 .primary-icon {
   display: grid;
   width: 28px;

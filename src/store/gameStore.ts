@@ -11,6 +11,7 @@ import type {
   PublicBet,
   RoundState,
   ServerBet,
+  ServerQueuedBet,
   ServerRound,
   ServerRoundHistory,
 } from "@/src/types/game";
@@ -62,6 +63,7 @@ const createBet = (id: BetId, config: FlightConfig): Bet => ({
   autoCashOutTarget: "2.00",
   status: "waiting",
   clientRequestId: null,
+  queuedBetUuid: null,
   serverBetUuid: null,
   ticketRef: null,
   placedAt: null,
@@ -115,6 +117,7 @@ const mergeServerBets = (
           betAmount: editableBetAmount(existing.betAmount, config),
           status: "waiting",
           clientRequestId: null,
+          queuedBetUuid: null,
           serverBetUuid: null,
           ticketRef: null,
           placedAt: null,
@@ -131,6 +134,7 @@ const mergeServerBets = (
           existing.autoCashOutTarget,
         status: mapBetStatus(serverBet.status),
         clientRequestId: null,
+        queuedBetUuid: null,
         serverBetUuid: serverBet.bet_uuid,
         ticketRef: serverBet.ticket_ref,
         placedAt: Date.parse(serverBet.placed_at),
@@ -142,6 +146,34 @@ const mergeServerBets = (
     },
   );
   return slots;
+};
+
+const mergeQueuedBets = (
+  bets: Bet[],
+  queuedBets: ServerQueuedBet[],
+): Bet[] => {
+  const queuedBySlot = new Map(
+    queuedBets.map((queued) => [queued.slot, queued]),
+  );
+  return bets.map((bet) => {
+    const queued = queuedBySlot.get(bet.id);
+    if (!queued) return bet;
+    return {
+      ...bet,
+      betAmount: queued.amount,
+      autoCashOut: Boolean(queued.auto_cashout_multiplier),
+      autoCashOutTarget:
+        queued.auto_cashout_multiplier ?? bet.autoCashOutTarget,
+      status: "queued",
+      clientRequestId: queued.client_request_id,
+      queuedBetUuid: queued.queue_uuid,
+      serverBetUuid: null,
+      ticketRef: null,
+      placedAt: Date.parse(queued.created_at),
+      winAmount: null,
+      cashOutMultiplier: null,
+    };
+  });
 };
 
 const historyFromRounds = (rounds: ServerRoundHistory[]): HistoryEntry[] =>
@@ -271,10 +303,13 @@ export const useGameStore = create<GameState>((set, get) => ({
         displayName: snapshot.player.display_name,
         balance: snapshot.player.balance,
         currency: snapshot.player.currency,
-        bets: mergeServerBets(
-          state.bets,
-          snapshot.player.active_bets,
-          snapshot.config,
+        bets: mergeQueuedBets(
+          mergeServerBets(
+            state.bets,
+            snapshot.player.active_bets,
+            snapshot.config,
+          ),
+          snapshot.player.queued_bets ?? [],
         ),
         history: historyFromRounds(snapshot.recent_rounds),
         publicBets: snapshot.public_bets,
@@ -393,6 +428,7 @@ export const useGameStore = create<GameState>((set, get) => ({
               ...bet,
               status: "pending",
               clientRequestId: requestId,
+              queuedBetUuid: null,
               serverBetUuid: null,
             }
           : bet,
