@@ -11,6 +11,27 @@ export const formatMoney = (
 export const formatGourdes = (value: number | string) =>
   formatMoney(value, "HTG");
 
+const moneyToMinorUnits = (value: number | string) => {
+  const match = /^(-?)(\d+)(?:\.(\d{1,2}))?$/.exec(String(value).trim());
+  if (!match) return 0n;
+
+  const [, sign, whole, fraction = ""] = match;
+  const minorUnits =
+    BigInt(whole) * 100n + BigInt(fraction.padEnd(2, "0"));
+  return sign === "-" ? -minorUnits : minorUnits;
+};
+
+export const sumMoney = (values: readonly (number | string)[]) => {
+  const total = values.reduce(
+    (sum, value) => sum + moneyToMinorUnits(value),
+    0n,
+  );
+  const sign = total < 0n ? "-" : "";
+  const absolute = total < 0n ? -total : total;
+
+  return `${sign}${absolute / 100n}.${String(absolute % 100n).padStart(2, "0")}`;
+};
+
 export const formatMultiplier = (value: number) =>
   `${value.toFixed(2)}x`;
 

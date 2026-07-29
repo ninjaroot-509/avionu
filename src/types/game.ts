@@ -63,6 +63,7 @@ export interface ServerRound {
 
 export interface ServerBet {
   bet_uuid: string;
+  client_request_id: string;
   ticket_ref: string;
   amount: string;
   auto_cashout_multiplier: string | null;
@@ -100,6 +101,7 @@ export interface Bet {
   autoCashOut: boolean;
   autoCashOutTarget: string;
   status: BetStatus;
+  clientRequestId: string | null;
   serverBetUuid: string | null;
   ticketRef: string | null;
   placedAt: number | null;

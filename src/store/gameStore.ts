@@ -61,6 +61,7 @@ const createBet = (id: BetId, config: FlightConfig): Bet => ({
   autoCashOut: false,
   autoCashOutTarget: "2.00",
   status: "waiting",
+  clientRequestId: null,
   serverBetUuid: null,
   ticketRef: null,
   placedAt: null,
@@ -74,18 +75,30 @@ const mergeServerBets = (
   config: FlightConfig,
 ): Bet[] => {
   const size = Math.max(1, config.maximum_bets_per_player || current.length || 1);
+  const explicitlyAssigned = new Set<string>();
+  const explicitMatches = current.map((existing) => {
+    const match = serverBets.find(
+      (item) =>
+        item.bet_uuid === existing.serverBetUuid ||
+        item.client_request_id === existing.clientRequestId,
+    );
+    if (match) explicitlyAssigned.add(match.bet_uuid);
+    return match;
+  });
+  const unassigned = serverBets.filter(
+    (item) => !explicitlyAssigned.has(item.bet_uuid),
+  );
+
   const slots = Array.from(
     { length: size },
     (_, index): Bet => {
       const existing = current[index] ?? createBet(index + 1, config);
-      const serverBet =
-        serverBets.find(
-          (item) => item.bet_uuid === existing.serverBetUuid,
-        ) ?? serverBets[index];
+      const serverBet = explicitMatches[index] ?? unassigned.shift();
       if (!serverBet) {
         return {
           ...existing,
           status: "waiting",
+          clientRequestId: null,
           serverBetUuid: null,
           ticketRef: null,
           placedAt: null,
@@ -101,6 +114,7 @@ const mergeServerBets = (
           serverBet.auto_cashout_multiplier ??
           existing.autoCashOutTarget,
         status: mapBetStatus(serverBet.status),
+        clientRequestId: null,
         serverBetUuid: serverBet.bet_uuid,
         ticketRef: serverBet.ticket_ref,
         placedAt: Date.parse(serverBet.placed_at),
@@ -313,6 +327,7 @@ export const useGameStore = create<GameState>((set, get) => ({
                 .filter((bet) => bet.serverBetUuid && bet.serverBetUuid !== serverBet.bet_uuid)
                 .map((bet) => ({
                   bet_uuid: bet.serverBetUuid as string,
+                  client_request_id: bet.clientRequestId ?? "",
                   ticket_ref: bet.ticketRef ?? "",
                   amount: bet.betAmount,
                   auto_cashout_multiplier: bet.autoCashOut
@@ -358,7 +373,12 @@ export const useGameStore = create<GameState>((set, get) => ({
     set((state) => ({
       bets: state.bets.map((bet) =>
         bet.id === id
-          ? { ...bet, status: "pending", serverBetUuid: requestId }
+          ? {
+              ...bet,
+              status: "pending",
+              clientRequestId: requestId,
+              serverBetUuid: null,
+            }
           : bet,
       ),
     })),

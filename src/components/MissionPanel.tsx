@@ -67,6 +67,12 @@ export const BetPanel = ({
   const canCancel = bettingOpen && bet.status === "placed";
   const canCashOut = isFlying && bet.status === "placed";
   const canEdit = canBet;
+  const statusLabel =
+    bet.status === "waiting"
+      ? canBet
+        ? "PRÊT"
+        : "MISES FERMÉES"
+      : STATUS_LABELS[bet.status];
   const minimum = Number(config.min_bet);
   const maximum = Number(config.max_bet);
   const amountStep = Math.max(
@@ -92,7 +98,8 @@ export const BetPanel = ({
     if (bet.status === "cancelled") return "ANNULÉ";
     if (canCashOut) return "CASHOUT";
     if (canCancel) return "ANNULER LE PARI";
-    return "PARI";
+    if (canBet) return "PLACER LE PARI";
+    return "MISES FERMÉES";
   })();
 
   const buttonSubtext = (() => {
@@ -135,12 +142,20 @@ export const BetPanel = ({
   })();
 
   return (
-    <article className={`mission-panel bet-panel mission-${bet.id}`}>
+    <article
+      className={`mission-panel bet-panel mission-${bet.id} ${
+        canEdit ? "is-editable" : "is-locked"
+      }`}
+    >
       <div className="mission-titlebar">
         <span>{bet.name}</span>
-        <span className={`mission-status is-${bet.status}`}>
+        <span
+          className={`mission-status is-${bet.status} ${
+            canBet ? "is-ready" : ""
+          }`}
+        >
           <i />
-          {STATUS_LABELS[bet.status]}
+          {statusLabel}
         </span>
       </div>
 
@@ -261,6 +276,8 @@ export const BetPanel = ({
         <motion.button
           className={`mission-primary ${
             canCashOut ? "is-cashout" : ""
+          } ${canBet ? "is-place" : ""} ${
+            bet.status === "cancelled" ? "is-cancelled" : ""
           } ${bet.status === "cashed_out" ? "is-win" : ""} ${
             bet.status === "lost" ? "is-lost" : ""
           } ${canCancel ? "is-cancel" : ""}`}
