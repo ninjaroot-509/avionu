@@ -69,6 +69,21 @@ const createBet = (id: BetId, config: FlightConfig): Bet => ({
   cashOutMultiplier: null,
 });
 
+const editableBetAmount = (amount: string, config: FlightConfig) => {
+  const value = Number(amount);
+  const minimum = Number(config.min_bet);
+  const maximum = Number(config.max_bet);
+
+  if (
+    !Number.isFinite(value) ||
+    value < minimum ||
+    value > maximum
+  ) {
+    return config.min_bet;
+  }
+  return amount;
+};
+
 const mergeServerBets = (
   current: Bet[],
   serverBets: ServerBet[],
@@ -97,6 +112,7 @@ const mergeServerBets = (
       if (!serverBet) {
         return {
           ...existing,
+          betAmount: editableBetAmount(existing.betAmount, config),
           status: "waiting",
           clientRequestId: null,
           serverBetUuid: null,
