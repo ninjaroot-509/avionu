@@ -1,19 +1,41 @@
 "use client";
 
-import { useEffect } from "react";
+import { AnimatePresence } from "framer-motion";
+import { useCallback, useEffect, useState } from "react";
 import { FlightScene } from "@/src/components/FlightScene";
-import { HistoryRibbon } from "@/src/components/HistoryRibbon";
+import {
+  GameAudio,
+  unlockGameAudio,
+} from "@/src/components/GameAudio";
+import { GameInfoModal } from "@/src/components/GameInfoModal";
+import { GameLoader } from "@/src/components/GameLoader";
 import { BetPanel } from "@/src/components/MissionPanel";
 import { PlayerSidebar } from "@/src/components/PlayerSidebar";
 import { ToastStack } from "@/src/components/ToastStack";
 import { TopBar } from "@/src/components/TopBar";
 import { useFlightGame } from "@/src/hooks/useFlightGame";
+import { useAssetPreloader } from "@/src/hooks/useAssetPreloader";
 import { useGameStore } from "@/src/store/gameStore";
 
 export const FlightArcadePage = () => {
+  const [gameEntered, setGameEntered] = useState(false);
+  const [audioGestureRequired, setAudioGestureRequired] =
+    useState(false);
   const bets = useGameStore((state) => state.bets);
+  const maximumBets = useGameStore(
+    (state) => state.config.maximum_bets_per_player,
+  );
   const toggleSound = useGameStore((state) => state.toggleSound);
-  const { placeBetAction, cancelBetAction, cashOutBetAction, reconnect } = useFlightGame();
+  const assets = useAssetPreloader();
+  const gameReady = assets.ready && gameEntered;
+  const { placeBetAction, cancelBetAction, cashOutBetAction, reconnect } =
+    useFlightGame(gameReady);
+  const handleAutoplayStarted = useCallback(() => {
+    setGameEntered(true);
+  }, []);
+  const handleAutoplayBlocked = useCallback(() => {
+    setAudioGestureRequired(true);
+  }, []);
 
   useEffect(() => {
     const handleKeyboard = (event: KeyboardEvent) => {
@@ -45,14 +67,18 @@ export const FlightArcadePage = () => {
   }, [placeBetAction, cashOutBetAction, toggleSound]);
 
   return (
-    <main className="arcade-shell">
+    <main className="arcade-shell" aria-busy={!gameReady}>
+      <GameAudio
+        assetsReady={assets.ready}
+        onAutoplayStarted={handleAutoplayStarted}
+        onAutoplayBlocked={handleAutoplayBlocked}
+      />
       <TopBar onReconnect={reconnect} />
 
       <div className="game-layout">
         <PlayerSidebar />
 
         <div className="game-stage">
-          <HistoryRibbon />
           <FlightScene />
 
           <section className="mission-grid" aria-label="Slots de pari">
@@ -70,13 +96,28 @@ export const FlightArcadePage = () => {
       </div>
 
       <footer className="arcade-footer">
-        <span>VINPARYE AVIATOR</span>
+        <span>AVIONU</span>
         <span>
-          1 / 2 POUR PARIER OU CASHOUT
+          1 / {maximumBets || "—"} POUR PARIER OU CASHOUT
         </span>
       </footer>
 
       <ToastStack />
+      <GameInfoModal />
+
+      <AnimatePresence>
+        {!gameEntered && (
+          <GameLoader
+            progress={assets.progress}
+            ready={assets.ready}
+            awaitingGesture={audioGestureRequired}
+            onEnter={() => {
+              unlockGameAudio();
+              setGameEntered(true);
+            }}
+          />
+        )}
+      </AnimatePresence>
     </main>
   );
 };

@@ -1,5 +1,14 @@
-export const formatGourdes = (value: number) =>
-  `${new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 }).format(value)} G`;
+export const formatMoney = (
+  value: number | string,
+  currency = "HTG",
+) =>
+  `${new Intl.NumberFormat("fr-FR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(Number(value) || 0)} ${currency}`;
+
+export const formatGourdes = (value: number | string) =>
+  formatMoney(value, "HTG");
 
 export const formatMultiplier = (value: number) =>
   `${value.toFixed(2)}x`;

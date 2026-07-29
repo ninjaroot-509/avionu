@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "VinParye Aviator",
+  title: "AVIONU",
   description:
     "Jeu de crash multiplier en Gourdes.",
   other: {

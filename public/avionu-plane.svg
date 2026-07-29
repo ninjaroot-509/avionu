@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 190" role="img" aria-label="Avionu red airplane">
+  <defs>
+    <linearGradient id="body" x1="75" y1="84" x2="322" y2="119" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ff6654"/>
+      <stop offset=".48" stop-color="#e12f24"/>
+      <stop offset="1" stop-color="#a90f13"/>
+    </linearGradient>
+    <linearGradient id="shade" x1="108" y1="126" x2="330" y2="126" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#b71918" stop-opacity=".2"/>
+      <stop offset="1" stop-color="#5b0b10" stop-opacity=".55"/>
+    </linearGradient>
+    <linearGradient id="metal" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#eef0e7"/>
+      <stop offset=".54" stop-color="#cfcfc0"/>
+      <stop offset="1" stop-color="#9b9e97"/>
+    </linearGradient>
+    <linearGradient id="nose" x1="318" y1="66" x2="382" y2="122" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#91a1c8"/>
+      <stop offset=".52" stop-color="#53699d"/>
+      <stop offset="1" stop-color="#314878"/>
+    </linearGradient>
+    <filter id="softShadow" x="-20%" y="-40%" width="150%" height="200%">
+      <feDropShadow dx="0" dy="9" stdDeviation="7" flood-color="#000" flood-opacity=".28"/>
+    </filter>
+  </defs>
+
+  <g filter="url(#softShadow)">
+    <path fill="#ebeadd" d="M177 38c34-18 86-21 116-8 8 4 9 13 1 16-42 3-82 8-124 18-8 2-13-7-7-14 4-5 9-9 14-12z"/>
+    <path fill="#d6d4c6" d="M164 60c50-12 88-17 130-18l-13 17c-38 1-75 5-119 17z"/>
+
+    <path fill="url(#body)" d="M63 101c24-27 84-42 177-45 64-2 104 8 122 30 9 11 6 24-8 32-30 18-99 28-191 26-57-1-94-11-112-29-5-5 2-8 12-14z"/>
+    <path fill="url(#shade)" d="M55 111c30 14 74 20 131 20 71 0 128-8 171-24-4 7-13 13-26 18-39 15-98 22-169 19-54-2-91-11-107-27-4-4-4-6 0-6z"/>
+
+    <path fill="#cb241e" d="M77 95 35 60c-8-7-4-20 7-17l92 29-23 33z"/>
+    <path fill="#f4e9d4" d="M51 64h72l-9 16-56 3z"/>
+    <path fill="#9c1718" d="M88 113 32 142c-11 6-21-5-13-15l43-50z"/>
+
+    <path fill="#ef4435" d="M142 126 74 168c-11 7-23-3-17-14l50-82z"/>
+    <path fill="#a31818" d="M143 126 87 160c17-22 25-44 20-88z"/>
+    <path fill="#e8e3d5" d="M112 112h83c8 0 9 13 0 14l-92 9c-10 1-13-12-3-16z"/>
+
+    <path fill="#232a35" d="M229 60c8-13 25-20 41-13 14 6 18 20 7 29-19-2-35-4-55-5 1-4 3-8 7-11z"/>
+    <path fill="#5f779b" d="M265 45c25 4 49 16 69 34l-11 16c-25-15-55-23-91-24 5-18 16-27 33-26z" opacity=".45"/>
+    <path fill="#2c2630" d="M215 57h13l-26 71h-13z"/>
+    <path fill="#2c2630" d="M289 49h12l-11 70h-13z"/>
+    <path fill="#f1ead8" d="M195 119h118c10 0 10 15 0 15H183c-8 0-10-11-2-14z"/>
+
+    <path fill="url(#nose)" d="M331 68c22 4 39 15 50 34 3 6-1 13-8 14l-43 7c10-17 11-35 1-55z"/>
+    <ellipse cx="379" cy="102" rx="10" ry="32" fill="#6d80ad"/>
+    <path stroke="#59658b" stroke-width="6" stroke-linecap="round" d="M391 58v89"/>
+    <path stroke="#59658b" stroke-width="5" stroke-linecap="round" d="M353 102h74"/>
+
+    <path stroke="#332932" stroke-width="5" stroke-linecap="round" d="M252 129l13 27"/>
+    <path stroke="#332932" stroke-width="5" stroke-linecap="round" d="M316 124l18 31"/>
+    <circle cx="267" cy="160" r="14" fill="#2c2f38"/>
+    <circle cx="267" cy="160" r="8" fill="#9ca3ad"/>
+    <circle cx="336" cy="159" r="16" fill="#2c2f38"/>
+    <circle cx="336" cy="159" r="9" fill="#a8aeb7"/>
+  </g>
+</svg>
