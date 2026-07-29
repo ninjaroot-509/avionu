@@ -197,7 +197,7 @@ export const TopBar = ({ onReconnect }: TopBarProps) => {
               </button>
               <span>
                 <small className="player-menu-kicker">PROFIL</small>
-                <strong>{displayName || "Joueur VinParye"}</strong>
+                <strong>{displayName || "Joueur Guest"}</strong>
                 <small>Compte joueur</small>
               </span>
             </div>
