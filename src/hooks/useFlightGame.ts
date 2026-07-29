@@ -1,5 +1,3 @@
-"use client";
-
 import { useCallback, useEffect } from "react";
 import { flightSocket } from "@/src/services/flightSocket";
 import { useGameStore } from "@/src/store/gameStore";

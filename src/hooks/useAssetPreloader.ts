@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useState } from "react";
 
 type AssetType = "image" | "audio";
@@ -129,13 +127,15 @@ export const useAssetPreloader = (): AssetLoadingState => {
         let blob: Blob;
 
         if (reader) {
-          const chunks: Uint8Array[] = [];
+          const chunks: BlobPart[] = [];
           let loadedBytes = 0;
 
           while (true) {
             const { done, value } = await reader.read();
             if (done) break;
-            chunks.push(value);
+            const chunk = new Uint8Array(value.byteLength);
+            chunk.set(value);
+            chunks.push(chunk.buffer);
             loadedBytes += value.byteLength;
             if (contentLength > 0) {
               fractions.set(

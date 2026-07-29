@@ -1,5 +1,3 @@
-"use client";
-
 import { AnimatePresence } from "framer-motion";
 import { useCallback, useEffect, useState } from "react";
 import { FlightScene } from "@/src/components/FlightScene";

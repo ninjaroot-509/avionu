@@ -1,8 +1,6 @@
 # VinParye Sky Command
 
-Interface React + Vite + TypeScript pour une simulation arcade de pilotage.
-Tous les points sont fictifs et l’énergie sert uniquement à régler la
-propulsion.
+Interface React + Vite + TypeScript pour un crash game visuel.
 
 ## Démarrage
 
@@ -14,8 +12,9 @@ npm run dev
 ## Commandes
 
 - `npm run dev` : démarre l’interface locale.
-- `npm run build` : génère la version de production.
-- `npm run lint` : vérifie TypeScript et les règles du projet.
+- `npm run build` : génère le site statique dans `dist/`.
+- `npm run preview` : sert localement le build statique.
+- `npm run lint` : vérifie les règles TypeScript du projet.
 
 ## Organisation
 
@@ -26,14 +25,14 @@ src/
   components/  barre, historique, scène, missions et notifications
   hooks/       cycle de synchronisation du simulateur
   mocks/       données locales initiales
-  pages/       composition de l’écran principal
+  screens/     composition de l’écran principal
   services/    service socket mock typé
   store/       état Zustand
   types/       événements et modèles TypeScript
   utils/       formatage et son synthétique
 ```
 
-Le service local émet :
+Le service de démonstration local émet :
 
 - `connection_status`
 - `round_created`
@@ -46,4 +45,4 @@ Le service local émet :
 - `round_finished`
 - `history_update`
 
-SIMULATION ARCADE — POINTS FICTIFS
+Le dossier `dist/` contient un `index.html` autonome et les assets du jeu.

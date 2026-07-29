@@ -1,5 +1,3 @@
-"use client";
-
 import { motion } from "framer-motion";
 import { useGameStore } from "@/src/store/gameStore";
 import type { Bet, BetId } from "@/src/types/game";

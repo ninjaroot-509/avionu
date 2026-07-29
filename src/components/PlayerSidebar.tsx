@@ -1,5 +1,3 @@
-"use client";
-
 import { useMemo, useRef, useState } from "react";
 import { useGameStore } from "@/src/store/gameStore";
 import { formatMoney, formatMultiplier } from "@/src/utils/format";

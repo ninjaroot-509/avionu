@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useRef } from "react";
 import { useGameStore } from "@/src/store/gameStore";
 import type { RoundState } from "@/src/types/game";

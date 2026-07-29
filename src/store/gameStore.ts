@@ -1,5 +1,3 @@
-"use client";
-
 import { create } from "zustand";
 import type {
   Bet,
@@ -86,38 +84,43 @@ const mergeServerBets = (
   config: FlightConfig,
 ): Bet[] => {
   const size = Math.max(1, config.maximum_bets_per_player || current.length || 1);
-  const slots = Array.from({ length: size }, (_, index) => {
-    const existing = current[index] ?? createBet(index + 1, config);
-    const serverBet =
-      serverBets.find((item) => item.bet_uuid === existing.serverBetUuid) ??
-      serverBets[index];
-    if (!serverBet) {
+  const slots = Array.from(
+    { length: size },
+    (_, index): Bet => {
+      const existing = current[index] ?? createBet(index + 1, config);
+      const serverBet =
+        serverBets.find(
+          (item) => item.bet_uuid === existing.serverBetUuid,
+        ) ?? serverBets[index];
+      if (!serverBet) {
+        return {
+          ...existing,
+          status: "waiting",
+          serverBetUuid: null,
+          ticketRef: null,
+          placedAt: null,
+          winAmount: null,
+          cashOutMultiplier: null,
+        };
+      }
       return {
         ...existing,
-        status: "waiting",
-        serverBetUuid: null,
-        ticketRef: null,
-        placedAt: null,
-        winAmount: null,
-        cashOutMultiplier: null,
+        betAmount: serverBet.amount,
+        autoCashOut: Boolean(serverBet.auto_cashout_multiplier),
+        autoCashOutTarget:
+          serverBet.auto_cashout_multiplier ??
+          existing.autoCashOutTarget,
+        status: mapBetStatus(serverBet.status),
+        serverBetUuid: serverBet.bet_uuid,
+        ticketRef: serverBet.ticket_ref,
+        placedAt: Date.parse(serverBet.placed_at),
+        winAmount: serverBet.final_payout,
+        cashOutMultiplier: serverBet.cashout_multiplier
+          ? Number(serverBet.cashout_multiplier)
+          : null,
       };
-    }
-    return {
-      ...existing,
-      betAmount: serverBet.amount,
-      autoCashOut: Boolean(serverBet.auto_cashout_multiplier),
-      autoCashOutTarget:
-        serverBet.auto_cashout_multiplier ?? existing.autoCashOutTarget,
-      status: mapBetStatus(serverBet.status),
-      serverBetUuid: serverBet.bet_uuid,
-      ticketRef: serverBet.ticket_ref,
-      placedAt: Date.parse(serverBet.placed_at),
-      winAmount: serverBet.final_payout,
-      cashOutMultiplier: serverBet.cashout_multiplier
-        ? Number(serverBet.cashout_multiplier)
-        : null,
-    };
-  });
+    },
+  );
   return slots;
 };
 

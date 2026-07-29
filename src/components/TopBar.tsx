@@ -1,7 +1,4 @@
-"use client";
-
 import { AnimatePresence, motion } from "framer-motion";
-import Link from "next/link";
 import { useEffect, useRef } from "react";
 import {
   openGameInfoModal,
@@ -115,7 +112,7 @@ export const TopBar = ({ onReconnect }: TopBarProps) => {
 
   return (
     <header className="topbar">
-      <Link className="brand" href="/" aria-label="AVIONU accueil">
+      <a className="brand" href="/" aria-label="AVIONU accueil">
         <img
           src="/vinparye-flight-mark.svg"
           alt=""
@@ -126,7 +123,7 @@ export const TopBar = ({ onReconnect }: TopBarProps) => {
           {/* <strong>VINPARYE</strong> */}
           <strong>AVIONU</strong>
         </span>
-      </Link>
+      </a>
 
       <HistoryRibbon />
 

@@ -1,5 +1,3 @@
-"use client";
-
 import type {
   Bet,
   FlightMessage,
@@ -31,7 +29,7 @@ const readToken = () => {
 };
 
 const websocketUrl = () => {
-  const configured = process.env.NEXT_PUBLIC_VINPARYE_WS_URL;
+  const configured = import.meta.env.VITE_VINPARYE_WS_URL;
   const base =
     configured ??
     (window.location.hostname === "localhost"
@@ -46,9 +44,9 @@ const websocketUrl = () => {
 class FlightSocket {
   private socket: WebSocket | null = null;
   private listeners = new Set<MessageListener>();
-  private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
-  private pingTimer: ReturnType<typeof setInterval> | null = null;
-  private deadTimer: ReturnType<typeof setTimeout> | null = null;
+  private reconnectTimer: number | null = null;
+  private pingTimer: number | null = null;
+  private deadTimer: number | null = null;
   private retryCount = 0;
   private intentionallyStopped = false;
   private pingRequests = new Map<string, number>();
@@ -277,7 +275,7 @@ class FlightSocket {
   }
 
   private async fetchRestSnapshot() {
-    const configured = process.env.NEXT_PUBLIC_VINPARYE_API_URL;
+    const configured = import.meta.env.VITE_VINPARYE_API_URL;
     const base =
       configured ??
       (window.location.hostname === "localhost"
