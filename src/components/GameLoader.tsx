@@ -24,26 +24,28 @@ export const GameLoader = ({
     aria-live="polite"
     aria-label={`Chargement du jeu ${progress}%`}
   >
+    <div className="game-loader-fleet" aria-hidden="true">
+      {Array.from({ length: 7 }, (_, index) => <span key={index} />)}
+    </div>
+
     <div className="game-loader-content">
       <div className="game-loader-brand" aria-label="Vinparye Game">
         <span className="game-loader-logo" aria-hidden="true" />
         <strong>AVIONU</strong>
       </div>
 
-      <div className="game-loader-progress">
-        <span style={{ width: `${progress}%` }} />
-      </div>
+      {!ready && (
+        <>
+          <div className="game-loader-progress">
+            <span style={{ width: `${progress}%` }} />
+          </div>
 
-      <div className="game-loader-readout">
-        <span>
-          {ready
-            ? awaitingGesture
-              ? "Prêt au décollage"
-              : "Initialisation audio"
-            : "Chargement"}
-        </span>
-        <strong>{progress}%</strong>
-      </div>
+          <div className="game-loader-readout">
+            <span>Chargement</span>
+            <strong>{progress}%</strong>
+          </div>
+        </>
+      )}
 
       {ready && awaitingGesture && (
         <motion.button
