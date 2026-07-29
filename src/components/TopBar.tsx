@@ -129,10 +129,10 @@ export const TopBar = ({ onReconnect }: TopBarProps) => {
 
       <div className="topbar-actions">
         <div className="points-balance" aria-label={`${balance} ${currency}`}>
-          <span className="points-symbol">{currency}</span>
+          <span className="points-symbol">G</span>
           <span>
             <small>SOLDE</small>
-            <strong>{formatMoney(balance, currency)}</strong>
+            <strong>{formatMoney(balance, "")}</strong>
           </span>
         </div>
 

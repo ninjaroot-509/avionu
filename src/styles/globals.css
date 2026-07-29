@@ -690,6 +690,22 @@ button:disabled {
   padding: 0;
 }
 
+.sb-name > span:nth-child(2) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sb-bot-badge {
+  flex: 0 0 auto;
+  border: 1px solid rgba(255, 202, 40, 0.22);
+  border-radius: 999px;
+  padding: 2px 4px;
+  color: rgba(255, 213, 83, 0.78);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 6px;
+  letter-spacing: 0.04em;
+}
+
 .sb-avatar {
   position: relative;
   width: 27px;
@@ -2186,7 +2202,7 @@ button:disabled {
 
 .quick-values {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 8px;
   margin-top: 8px;
 }

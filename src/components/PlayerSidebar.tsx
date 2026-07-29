@@ -74,7 +74,7 @@ export const PlayerSidebar = () => {
       </div>
 
       <div className="sidebar-total">
-        Joueurs officiels: <span>{totalPlayers}</span>
+        Participants: <span>{totalPlayers}</span>
       </div>
 
       <div className="sidebar-table-header">
@@ -100,7 +100,11 @@ export const PlayerSidebar = () => {
               <span>{entry.player}</span>
             </span>
             <span className="sb-pari">
-              {formatMoney(entry.amount, entry.currency)}
+              {formatMoney(
+                entry.amount,
+                entry.currency,
+                Number(entry.amount) % 1 === 0 ? 0 : 2,
+              )}
             </span>
             <span className="sb-cote">
               {entry.cashout_multiplier

@@ -73,12 +73,8 @@ export const BetPanel = ({
     0.01,
     Number(((maximum - minimum) / 20).toFixed(2)),
   );
-  const quickValues = Array.from(
-    new Set(
-      [0, 0.25, 0.5, 1].map((ratio) =>
-        Number((minimum + (maximum - minimum) * ratio).toFixed(2)),
-      ),
-    ),
+  const quickValues = [25, 50, 250, 1000, 5000].filter(
+    (value) => value >= minimum && value <= maximum,
   );
 
   const handlePrimaryAction = () => {

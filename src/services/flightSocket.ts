@@ -33,7 +33,7 @@ const websocketUrl = () => {
   const base =
     configured ??
     (window.location.hostname === "localhost"
-      ? "ws://localhost:8000"
+      ? "wss://api.vinparye.com"
       : "wss://api.vinparye.com");
   const token = readToken();
   const url = new URL("/ws/games/flight/", base);
@@ -279,7 +279,7 @@ class FlightSocket {
     const base =
       configured ??
       (window.location.hostname === "localhost"
-        ? "http://localhost:8000"
+        ? "https://api.vinparye.com"
         : "https://api.vinparye.com");
     const token = readToken();
     try {

@@ -24,26 +24,12 @@ export type BetStatus =
 export type BetId = number;
 
 export interface FlightConfig {
-  enabled: boolean;
-  maintenance: boolean;
-  maintenance_text: string;
   currency: string;
   min_bet: string;
   max_bet: string;
   maximum_bet_per_user: string;
   maximum_bets_per_player: number;
-  maximum_active_bets: number;
   max_auto_cashout: string;
-  betting_duration_ms: number;
-  preflight_duration_ms: number;
-  pause_duration_ms: number;
-  tick_interval_ms: number;
-  provably_fair_enabled: boolean;
-  curve_version: string;
-  curve_parameters: {
-    start_multiplier?: string;
-    growth_per_second?: string;
-  };
   reconnection_settings: {
     base_delay_ms?: number;
     maximum_delay_ms?: number;
@@ -57,12 +43,9 @@ export interface ServerRound {
   round_uuid: string;
   round_number: number;
   status: string;
-  betting_open_at_ms: number;
   betting_close_at_ms: number;
   started_at_ms: number;
   crashed_at_ms: number | null;
-  completed_at: string | null;
-  next_round_at_ms: number | null;
   elapsed_ms: number;
   expected_multiplier: string;
   crash_multiplier: string | null;
@@ -72,10 +55,7 @@ export interface ServerRound {
   nonce: number;
   animation_seed: string;
   animation_profile: Record<string, string | number>;
-  curve_version: string;
-  curve_parameters: Record<string, string>;
   configuration_version: number;
-  total_bets: string;
   total_paid: string;
   player_count: number;
   bot_count: number;
@@ -83,19 +63,18 @@ export interface ServerRound {
 
 export interface ServerBet {
   bet_uuid: string;
-  round_uuid: string;
   ticket_ref: string;
   amount: string;
-  currency: string;
   auto_cashout_multiplier: string | null;
   cashout_multiplier: string | null;
-  potential_payout: string;
   final_payout: string;
   status: string;
-  client_request_id: string;
   placed_at: string;
-  cashed_out_at: string | null;
-  settled_at: string | null;
+}
+
+export interface ServerRoundHistory {
+  round_uuid: string;
+  crash_multiplier: string;
 }
 
 export interface PublicBet {
@@ -141,16 +120,15 @@ export interface FlightPlayerSnapshot {
   balance: string;
   currency: string;
   active_bets: ServerBet[];
-  limits: Record<string, string | number>;
 }
 
 export interface FlightSnapshot {
   stream_id: string;
+  sequence: number;
   config: FlightConfig;
   round: ServerRound | null;
   player: FlightPlayerSnapshot;
-  recent_rounds: ServerRound[];
-  next_round: ServerRound | null;
+  recent_rounds: ServerRoundHistory[];
   public_bets: PublicBet[];
 }
 
@@ -163,9 +141,4 @@ export interface FlightMessage {
   sequence: number;
   round: ServerRound | null;
   data: Record<string, unknown>;
-  config?: FlightConfig;
-  player?: FlightPlayerSnapshot;
-  recent_rounds?: ServerRound[];
-  next_round?: ServerRound | null;
-  public_bets?: PublicBet[];
 }

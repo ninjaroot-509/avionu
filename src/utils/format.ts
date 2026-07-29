@@ -1,10 +1,11 @@
 export const formatMoney = (
   value: number | string,
   currency = "HTG",
+  fractionDigits = 2,
 ) =>
   `${new Intl.NumberFormat("fr-FR", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
+    minimumFractionDigits: fractionDigits,
+    maximumFractionDigits: fractionDigits,
   }).format(Number(value) || 0)} ${currency}`;
 
 export const formatGourdes = (value: number | string) =>

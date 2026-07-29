@@ -12,27 +12,17 @@ import type {
   RoundState,
   ServerBet,
   ServerRound,
+  ServerRoundHistory,
 } from "@/src/types/game";
 import { clamp, uid } from "@/src/utils/format";
 
 const EMPTY_CONFIG: FlightConfig = {
-  enabled: false,
-  maintenance: false,
-  maintenance_text: "",
   currency: "HTG",
   min_bet: "0.00",
   max_bet: "0.00",
   maximum_bet_per_user: "0.00",
   maximum_bets_per_player: 0,
-  maximum_active_bets: 0,
   max_auto_cashout: "0.00",
-  betting_duration_ms: 0,
-  preflight_duration_ms: 0,
-  pause_duration_ms: 0,
-  tick_interval_ms: 200,
-  provably_fair_enabled: false,
-  curve_version: "linear-v1",
-  curve_parameters: {},
   reconnection_settings: {},
   config_version: 0,
 };
@@ -124,7 +114,7 @@ const mergeServerBets = (
   return slots;
 };
 
-const historyFromRounds = (rounds: ServerRound[]): HistoryEntry[] =>
+const historyFromRounds = (rounds: ServerRoundHistory[]): HistoryEntry[] =>
   rounds
     .filter((round) => round.crash_multiplier !== null)
     .map((round) => ({
@@ -236,9 +226,7 @@ export const useGameStore = create<GameState>((set, get) => ({
           ? Math.max(
               0,
               Math.ceil(
-                ((round.status === "BETTING_CLOSED"
-                  ? round.started_at_ms
-                  : round.betting_close_at_ms) -
+                (round.started_at_ms -
                   (Date.now() + state.clockOffsetMs)) /
                   1000,
               ),
@@ -299,14 +287,12 @@ export const useGameStore = create<GameState>((set, get) => ({
         patch.crashMultiplier = round.crash_multiplier
           ? Number(round.crash_multiplier)
           : null;
-        const deadline =
-          round.status === "BETTING_CLOSED"
-            ? round.started_at_ms
-            : round.betting_close_at_ms;
         patch.countdown = Math.max(
           0,
           Math.ceil(
-            (deadline - (Date.now() + state.clockOffsetMs)) / 1000,
+            (round.started_at_ms -
+              (Date.now() + state.clockOffsetMs)) /
+              1000,
           ),
         );
       }
@@ -327,17 +313,14 @@ export const useGameStore = create<GameState>((set, get) => ({
                 .filter((bet) => bet.serverBetUuid && bet.serverBetUuid !== serverBet.bet_uuid)
                 .map((bet) => ({
                   bet_uuid: bet.serverBetUuid as string,
-                  round_uuid: state.roundId,
                   ticket_ref: bet.ticketRef ?? "",
                   amount: bet.betAmount,
-                  currency: state.currency,
                   auto_cashout_multiplier: bet.autoCashOut
                     ? bet.autoCashOutTarget
                     : null,
                   cashout_multiplier: bet.cashOutMultiplier
                     ? String(bet.cashOutMultiplier)
                     : null,
-                  potential_payout: "0.00",
                   final_payout: bet.winAmount ?? "0.00",
                   status:
                     bet.status === "placed"
@@ -345,10 +328,7 @@ export const useGameStore = create<GameState>((set, get) => ({
                       : bet.status === "cashed_out"
                         ? "CASHED_OUT"
                         : bet.status.toUpperCase(),
-                  client_request_id: "",
                   placed_at: new Date(bet.placedAt ?? Date.now()).toISOString(),
-                  cashed_out_at: null,
-                  settled_at: null,
                 })),
               serverBet,
             ],
