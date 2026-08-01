@@ -113,7 +113,7 @@ export const BetPanel = ({
   const cashOutAmountLabel = formatMoney(
     Number(bet.betAmount) * multiplier,
     currency,
-    0,
+    2,
   );
 
   const handlePrimaryAction = () => {
@@ -125,7 +125,7 @@ export const BetPanel = ({
   };
 
   const buttonLabel = (() => {
-    if (bet.status === "pending") return "VALIDATION SERVEUR";
+    if (bet.status === "pending") return "VALIDATION EN COURS";
     if (canCancelQueue) return "ANNULER LA MISE PROGRAMMÉE";
     if (canCashOut) return `Encaisser ${cashOutAmountLabel}`;
     if (canCancel) return "ANNULER LE PARI";
@@ -141,12 +141,12 @@ export const BetPanel = ({
 
   const buttonSubtext = (() => {
     if (bet.status === "pending")
-      return "Le backend vérifie le wallet et les limites";
+      return "Le paiement est en cours de traitement";
     if (canCancelQueue)
       return "Le débit sera fait uniquement à l'ouverture";
     if (canCashOut)
-      return `Multiplicateur serveur ${formatMultiplier(multiplier)}`;
-    if (canCancel) return "Remboursement traité par le wallet officiel";
+      return `Multiplicateur ${formatMultiplier(multiplier)}`;
+    if (canCancel) return "Le débit sera annulé et le montant remboursé";
     if (canQueue) return betAmountLabel;
     if (bet.status === "cashed_out")
       return `${formatMultiplier(bet.cashOutMultiplier ?? 1)} · ${bet.ticketRef ?? ""}`;
@@ -157,13 +157,13 @@ export const BetPanel = ({
   })();
 
   const panelStatus = (() => {
-    if (isFlying && bet.status === "placed") {
-      return {
-        className: "",
-        label: "MULTIPLICATEUR SERVEUR",
-        value: formatMultiplier(multiplier),
-      };
-    }
+    // if (isFlying && bet.status === "placed") {
+    //   return {
+    //     className: "",
+    //     label: "MULTIPLICATEUR",
+    //     value: formatMultiplier(multiplier),
+    //   };
+    // }
     if (bet.status === "cashed_out") {
       return {
         className: "is-win",
@@ -270,7 +270,7 @@ export const BetPanel = ({
           }`}
         >
           <Toggle
-            label="Retrait auto serveur"
+            label="Retrait auto"
             checked={bet.autoCashOut}
             disabled={!canEdit}
             onChange={(autoCashOut) =>

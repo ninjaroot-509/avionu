@@ -71,6 +71,26 @@ const createBet = (id: BetId, config: FlightConfig): Bet => ({
   cashOutMultiplier: null,
 });
 
+const SETTLED_BET_STATUSES = new Set<Bet["status"]>([
+  "cashed_out",
+  "lost",
+  "cancelled",
+  "refunded",
+  "rejected",
+]);
+
+const resetBetForNextWager = (bet: Bet): Bet => ({
+  ...bet,
+  status: "waiting",
+  clientRequestId: null,
+  queuedBetUuid: null,
+  serverBetUuid: null,
+  ticketRef: null,
+  placedAt: null,
+  winAmount: null,
+  cashOutMultiplier: null,
+});
+
 const editableBetAmount = (amount: string, config: FlightConfig) => {
   const value = Number(amount);
   const minimum = Number(config.min_bet);
@@ -175,6 +195,13 @@ const mergeQueuedBets = (
     };
   });
 };
+
+const resetSettledBetsForNextRound = (bets: Bet[]): Bet[] =>
+  bets.map((bet) =>
+    SETTLED_BET_STATUSES.has(bet.status)
+      ? resetBetForNextWager(bet)
+      : bet,
+  );
 
 const historyFromRounds = (rounds: ServerRoundHistory[]): HistoryEntry[] =>
   rounds
@@ -338,6 +365,12 @@ export const useGameStore = create<GameState>((set, get) => ({
         }
       }
       if (round) {
+        const previousRoundId = state.currentRound?.round_uuid ?? "";
+        const nextRoundStarted =
+          round.round_uuid !== previousRoundId &&
+          (round.status === "SCHEDULED" ||
+            round.status === "BETTING_OPEN" ||
+            round.status === "BETTING_CLOSED");
         patch.currentRound = round;
         patch.roundState = mapRoundState(round);
         patch.roundId = round.round_uuid;
@@ -360,6 +393,9 @@ export const useGameStore = create<GameState>((set, get) => ({
               1000,
           ),
         );
+        if (nextRoundStarted) {
+          patch.bets = resetSettledBetsForNextRound(state.bets);
+        }
       }
       if (message.event === "wallet.updated") {
         patch.balance = String(message.data.balance ?? state.balance);
@@ -441,34 +477,43 @@ export const useGameStore = create<GameState>((set, get) => ({
       const maximum = Number(state.config.max_bet);
       const maxAuto = Number(state.config.max_auto_cashout);
       return {
-        bets: state.bets.map((bet) =>
-          bet.id === id
-            ? {
-                ...bet,
-                ...patch,
-                betAmount:
-                  patch.betAmount === undefined
-                    ? bet.betAmount
-                    : String(
-                        clamp(
-                          Number(patch.betAmount),
-                          minimum,
-                          maximum,
-                        ).toFixed(2),
-                      ),
-                autoCashOutTarget:
-                  patch.autoCashOutTarget === undefined
-                    ? bet.autoCashOutTarget
-                    : String(
-                        clamp(
-                          Number(patch.autoCashOutTarget),
-                          1.01,
-                          maxAuto,
-                        ).toFixed(2),
-                      ),
-              }
-            : bet,
-        ),
+        bets: state.bets.map((bet) => {
+          if (bet.id !== id) return bet;
+
+          const editedSettledBet =
+            SETTLED_BET_STATUSES.has(bet.status) &&
+            (patch.betAmount !== undefined ||
+              patch.autoCashOut !== undefined ||
+              patch.autoCashOutTarget !== undefined);
+          const baseBet = editedSettledBet
+            ? resetBetForNextWager(bet)
+            : bet;
+
+          return {
+            ...baseBet,
+            ...patch,
+            betAmount:
+              patch.betAmount === undefined
+                ? baseBet.betAmount
+                : String(
+                    clamp(
+                      Number(patch.betAmount),
+                      minimum,
+                      maximum,
+                    ).toFixed(2),
+                  ),
+            autoCashOutTarget:
+              patch.autoCashOutTarget === undefined
+                ? baseBet.autoCashOutTarget
+                : String(
+                    clamp(
+                      Number(patch.autoCashOutTarget),
+                      1.01,
+                      maxAuto,
+                    ).toFixed(2),
+                  ),
+          };
+        }),
       };
     }),
 
