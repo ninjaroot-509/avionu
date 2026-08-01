@@ -109,6 +109,12 @@ export const BetPanel = ({
   const quickValues = [25, 50, 250, 1000, 5000].filter(
     (value) => value >= minimum && value <= maximum,
   );
+  const betAmountLabel = formatMoney(bet.betAmount, currency, 0);
+  const cashOutAmountLabel = formatMoney(
+    Number(bet.betAmount) * multiplier,
+    currency,
+    0,
+  );
 
   const handlePrimaryAction = () => {
     if (canCashOut) onCashOut(bet.id);
@@ -121,10 +127,10 @@ export const BetPanel = ({
   const buttonLabel = (() => {
     if (bet.status === "pending") return "VALIDATION SERVEUR";
     if (canCancelQueue) return "ANNULER LA MISE PROGRAMMÉE";
-    if (canCashOut) return "CASHOUT";
+    if (canCashOut) return `Encaisser ${cashOutAmountLabel}`;
     if (canCancel) return "ANNULER LE PARI";
-    if (canQueue) return "PLACER LE PARI";
-    if (canBet) return "PLACER LE PARI";
+    if (canQueue) return "Pari";
+    if (canBet) return "Pari";
     if (bet.status === "cashed_out")
       return `GAGNÉ ${formatMoney(bet.winAmount ?? "0", currency)}`;
     if (bet.status === "lost") return "PERDU";
@@ -141,14 +147,13 @@ export const BetPanel = ({
     if (canCashOut)
       return `Multiplicateur serveur ${formatMultiplier(multiplier)}`;
     if (canCancel) return "Remboursement traité par le wallet officiel";
-    if (canQueue)
-      return "Aucun débit avant l'ouverture de la prochaine manche";
+    if (canQueue) return betAmountLabel;
     if (bet.status === "cashed_out")
       return `${formatMultiplier(bet.cashOutMultiplier ?? 1)} · ${bet.ticketRef ?? ""}`;
     if (bet.status === "lost")
       return "Le crash officiel est arrivé avant le cashout";
     if (!bettingOpen) return "En attente de l'ouverture des mises";
-    return `${formatMoney(bet.betAmount, currency)} sur cette manche`;
+    return betAmountLabel;
   })();
 
   const panelStatus = (() => {
