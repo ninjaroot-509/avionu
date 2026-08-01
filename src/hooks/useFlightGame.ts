@@ -41,6 +41,10 @@ export const useFlightGame = (enabled = true) => {
       }
     });
     flightSocket.start();
+    const multiplierTimer = window.setInterval(
+      () => useGameStore.getState().refreshRunningMultiplier(),
+      80,
+    );
     const reconnectOnNetwork = () => flightSocket.reconnect();
     const resyncOnVisibility = () => {
       if (document.visibilityState === "visible")
@@ -50,6 +54,7 @@ export const useFlightGame = (enabled = true) => {
     document.addEventListener("visibilitychange", resyncOnVisibility);
     return () => {
       unsubscribe();
+      window.clearInterval(multiplierTimer);
       window.removeEventListener("online", reconnectOnNetwork);
       document.removeEventListener(
         "visibilitychange",

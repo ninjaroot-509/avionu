@@ -211,6 +211,30 @@ const historyFromRounds = (rounds: ServerRoundHistory[]): HistoryEntry[] =>
       crashMultiplier: Number(round.crash_multiplier),
     }));
 
+const calculateRunningMultiplier = (
+  round: ServerRound,
+  clockOffsetMs: number,
+) => {
+  if (round.status !== "RUNNING") return Number(round.expected_multiplier);
+  const parameters = round.curve_parameters ?? {};
+  const start = Number(parameters.start_multiplier ?? "1.01");
+  const growth = Number(parameters.growth_per_second ?? "0.08");
+  const elapsedMs = Math.max(
+    round.elapsed_ms,
+    Date.now() + clockOffsetMs - round.started_at_ms,
+    0,
+  );
+  if (
+    round.curve_version !== "linear-v1" ||
+    !Number.isFinite(start) ||
+    !Number.isFinite(growth)
+  ) {
+    return Number(round.expected_multiplier);
+  }
+  const multiplier = start + (elapsedMs / 1000) * growth;
+  return Math.max(1, Math.floor(multiplier * 100) / 100);
+};
+
 interface GameState {
   connection: ConnectionStatus;
   streamId: string;
@@ -243,6 +267,7 @@ interface GameState {
   setNetworkTiming: (latencyMs: number, clockOffsetMs: number) => void;
   applyMessage: (message: FlightMessage) => void;
   applySnapshot: (snapshot: FlightSnapshot, sequence: number) => void;
+  refreshRunningMultiplier: () => void;
   markBetPending: (id: BetId, requestId: string) => void;
   updateBet: (id: BetId, patch: Partial<Bet>) => void;
   toggleHistory: () => void;
@@ -321,7 +346,9 @@ export const useGameStore = create<GameState>((set, get) => ({
               ),
             )
           : 0,
-        multiplier: Number(round?.expected_multiplier ?? "1"),
+        multiplier: round
+          ? calculateRunningMultiplier(round, state.clockOffsetMs)
+          : 1,
         elapsed: round?.elapsed_ms ?? 0,
         crashMultiplier: round?.crash_multiplier
           ? Number(round.crash_multiplier)
@@ -374,9 +401,9 @@ export const useGameStore = create<GameState>((set, get) => ({
         patch.currentRound = round;
         patch.roundState = mapRoundState(round);
         patch.roundId = round.round_uuid;
-        patch.multiplier = Number(
-          (message.data.expected_multiplier as string | undefined) ??
-            round.expected_multiplier,
+        patch.multiplier = calculateRunningMultiplier(
+          round,
+          state.clockOffsetMs,
         );
         patch.elapsed = Number(
           (message.data.elapsed_ms as number | undefined) ??
@@ -454,6 +481,25 @@ export const useGameStore = create<GameState>((set, get) => ({
         patch.balance = String(message.data.balance ?? state.balance);
       }
       return patch;
+    }),
+
+  refreshRunningMultiplier: () =>
+    set((state) => {
+      const round = state.currentRound;
+      if (!round || round.status !== "RUNNING") return {};
+      const multiplier = calculateRunningMultiplier(
+        round,
+        state.clockOffsetMs,
+      );
+      if (multiplier === state.multiplier) return {};
+      return {
+        multiplier,
+        elapsed: Math.max(
+          state.elapsed,
+          Date.now() + state.clockOffsetMs - round.started_at_ms,
+          0,
+        ),
+      };
     }),
 
   markBetPending: (id, requestId) =>

@@ -56,6 +56,8 @@ export interface ServerRound {
   nonce: number;
   animation_seed: string;
   animation_profile: Record<string, string | number>;
+  curve_version: string;
+  curve_parameters: Record<string, string | number>;
   configuration_version: number;
   total_paid: string;
   player_count: number;
